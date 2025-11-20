@@ -1,2 +1,5 @@
-/data
-/mlruns
+.env
+.venv/
+__pycache__/
+*.pyc
+service_account.json

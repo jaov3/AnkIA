@@ -1,0 +1,22 @@
+artifact_path: file:///C:/Users/Jo%C3%A3o%20Vitor/Documents/Projetos/AnkIA/mlruns/689824514983194721/models/m-43e169f929cd45d7b2200d0c3e95fc42/artifacts
+flavors:
+  python_function:
+    env:
+      conda: conda.yaml
+      virtualenv: python_env.yaml
+    loader_module: mlflow.sklearn
+    model_path: model.pkl
+    predict_fn: predict
+    python_version: 3.14.0
+  sklearn:
+    code: null
+    pickled_model: model.pkl
+    serialization_format: cloudpickle
+    sklearn_version: 1.7.2
+mlflow_version: 3.6.0
+model_id: m-43e169f929cd45d7b2200d0c3e95fc42
+model_size_bytes: 1594
+model_uuid: m-43e169f929cd45d7b2200d0c3e95fc42
+prompts: null
+run_id: e6bfc2cf209e4507a266fd1c89f4745d
+utc_time_created: '2025-11-18 19:11:51.707359'

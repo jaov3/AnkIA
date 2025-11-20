@@ -1,0 +1,10 @@
+artifact_location: file:///C:/Users/Jo%C3%A3o%20Vitor/Documents/Projetos/AnkIA/mlruns/689824514983194721/models/m-43e169f929cd45d7b2200d0c3e95fc42/artifacts
+creation_timestamp: 1763493111665
+experiment_id: '689824514983194721'
+last_updated_timestamp: 1763493118746
+model_id: m-43e169f929cd45d7b2200d0c3e95fc42
+model_type: null
+name: classfication_model
+source_run_id: e6bfc2cf209e4507a266fd1c89f4745d
+status: 2
+status_message: null

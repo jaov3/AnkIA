@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AnkIA - Analisador de Feedback</title>
+    <!-- Importando Tailwind CSS via CDN para estilização rápida -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Fonte Inter para um visual mais profissional -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col items-center py-10 px-4">
+
+    <!-- Container Principal -->
+    <div class="w-full max-w-2xl bg-white shadow-xl rounded-2xl overflow-hidden border border-slate-100">
+        
+        <!-- Cabeçalho -->
+        <div class="bg-indigo-600 p-6 text-white">
+            <h1 class="text-2xl font-bold flex items-center gap-2">
+                🤖 AnkIA Feedback Agent
+            </h1>
+            <p class="text-indigo-100 text-sm mt-1">Cole o feedback do cliente abaixo para classificação com IA.</p>
+        </div>
+
+        <!-- Área de Formulário -->
+        <div class="p-6 space-y-4">
+            <div>
+                <label for="feedbackInput" class="block text-sm font-medium text-slate-700 mb-2">Texto do Feedback</label>
+                <textarea 
+                    id="feedbackInput" 
+                    rows="4" 
+                    class="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition shadow-sm resize-none"
+                    placeholder="Ex: O entregador foi super educado, mas a comida chegou fria..."
+                ></textarea>
+            </div>
+
+            <button 
+                onclick="analyzeFeedback()" 
+                id="analyzeBtn"
+                class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 px-6 rounded-lg transition duration-200 flex justify-center items-center gap-2"
+            >
+                <span>Analisar Feedback</span>
+                <svg id="btnIcon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+            </button>
+        </div>
+
+        <!-- Loader (Escondido por padrão) -->
+        <div id="loader" class="hidden p-6 text-center">
+            <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-indigo-600 mx-auto mb-3"></div>
+            <p class="text-slate-500 text-sm animate-pulse">Processando com Gemini AI...</p>
+        </div>
+
+        <!-- Área de Resultados (Escondida por padrão) -->
+        <div id="resultArea" class="hidden bg-slate-50 border-t border-slate-100 p-6 transition-all duration-500">
+            <h2 class="text-lg font-bold text-slate-800 mb-4">Resultado da Análise</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <!-- Card Categoria -->
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+                    <p class="text-xs text-slate-500 uppercase font-bold tracking-wider mb-1">Categoria</p>
+                    <div class="flex items-center gap-2">
+                        <span id="resCategory" class="text-lg font-semibold text-slate-800">--</span>
+                    </div>
+                </div>
+
+                <!-- Card Sentimento -->
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 relative overflow-hidden">
+                    <div id="sentimentColorBar" class="absolute left-0 top-0 bottom-0 w-1.5 bg-gray-300"></div>
+                    <p class="text-xs text-slate-500 uppercase font-bold tracking-wider mb-1 pl-2">Sentimento</p>
+                    <div class="flex items-center gap-2 pl-2">
+                        <span id="resSentiment" class="text-lg font-semibold text-slate-800">--</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card Resumo -->
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
+                <p class="text-xs text-slate-500 uppercase font-bold tracking-wider mb-2">Resumo & Ação</p>
+                <p id="resSummary" class="text-slate-600 leading-relaxed">
+                    --
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Rodapé -->
+    <p class="mt-8 text-slate-400 text-xs">Powered by FastAPI & Google Gemini</p>
+
+    <!-- Script Lógico -->
+    <script>
+        async function analyzeFeedback() {
+            const text = document.getElementById('feedbackInput').value;
+            const loader = document.getElementById('loader');
+            const resultArea = document.getElementById('resultArea');
+            const btn = document.getElementById('analyzeBtn');
+
+            if (!text.trim()) {
+                alert("Por favor, digite algum feedback.");
+                return;
+            }
+
+            // Estado de Loading
+            loader.classList.remove('hidden');
+            resultArea.classList.add('hidden');
+            btn.disabled = true;
+            btn.classList.add('opacity-75', 'cursor-not-allowed');
+
+            try {
+                const response = await fetch('/process', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ text: text })
+                });
+
+                if (!response.ok) throw new Error('Erro na API');
+
+                const data = await response.json();
+                renderResult(data);
+
+            } catch (error) {
+                console.error(error);
+                alert("Ocorreu um erro ao processar o feedback.");
+            } finally {
+                // Resetar Estado
+                loader.classList.add('hidden');
+                btn.disabled = false;
+                btn.classList.remove('opacity-75', 'cursor-not-allowed');
+            }
+        }
+
+        function renderResult(data) {
+            const resultArea = document.getElementById('resultArea');
+            const elCategory = document.getElementById('resCategory');
+            const elSentiment = document.getElementById('resSentiment');
+            const elSummary = document.getElementById('resSummary');
+            const elColorBar = document.getElementById('sentimentColorBar');
+
+            // Preencher textos
+            elCategory.textContent = data.category;
+            elSentiment.textContent = data.sentiment;
+            elSummary.textContent = data.summary;
+
+            // Lógica de Cores baseada no Sentimento
+            let colorClass = 'bg-gray-400'; // Padrão Neutro
+            let textColorClass = 'text-gray-600';
+
+            const sent = data.sentiment.toLowerCase();
+
+            if (sent.includes('positivo')) {
+                colorClass = 'bg-emerald-500';
+                textColorClass = 'text-emerald-600';
+            } else if (sent.includes('negativo')) {
+                colorClass = 'bg-rose-500';
+                textColorClass = 'text-rose-600';
+            } else {
+                colorClass = 'bg-blue-400';
+                textColorClass = 'text-blue-600';
+            }
+
+            // Aplicar Cores
+            elColorBar.className = `absolute left-0 top-0 bottom-0 w-1.5 ${colorClass}`;
+            elSentiment.className = `text-lg font-bold ${textColorClass}`;
+
+            // Mostrar resultados com animação simples (fade in via CSS/display)
+            resultArea.classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>
